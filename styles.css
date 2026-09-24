@@ -1,0 +1,10 @@
+html, body, #root { min-height: 100%; margin: 0; }
+body { background: #f5f5f5; font-family: Inter, system-ui, sans-serif; }
+.auth-page { align-items: center; display: flex; justify-content: center; min-height: 100vh; padding: 24px; }
+.auth-card { width: min(100%, 440px); }
+.centered { align-items: center; display: flex; justify-content: center; min-height: 180px; }
+.app-layout { min-height: 100vh; }
+.header { align-items: center; background: #fff; display: flex; justify-content: space-between; padding: 0 24px; }
+.brand { color: #241f63; font-size: 18px; font-weight: 700; }
+.content { margin: 24px; max-width: 1200px; }
+.two-factor-qr { display: flex; justify-content: center; }
