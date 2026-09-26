@@ -1,0 +1,45 @@
+# Checks every push and PR to dev; a green push to dev is deployed to the test
+# cluster by ikaraev/gameprovider-deploy (see DEPLOY.md).
+name: ci
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npx vite build
+
+  # Only after the checks pass, and never for pull requests.
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask gameprovider-deploy to build and roll out this commit
+        env:
+          # Fine-grained PAT, Contents: Read and write on gameprovider-deploy.
+          GH_TOKEN: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+        run: |
+          gh api "repos/${{ github.repository_owner }}/gameprovider-deploy/dispatches" \
+            -f event_type=deploy \
+            -f "client_payload[service]=admin-front" \
+            -f "client_payload[ref]=${{ github.sha }}"
+          echo "Rollout: https://github.com/${{ github.repository_owner }}/gameprovider-deploy/actions"
