@@ -5,7 +5,8 @@
 #
 # The API is served on the same host under /api/v1 (see gameprovider-deploy: base/ingress.yaml), so a
 # relative base URL works on any domain and the auth cookies stay first-party.
-FROM node:22-alpine AS build
+# The SPA output is CPU-independent: build it on the builder's own platform (no qemu).
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
