@@ -1,5 +1,20 @@
 # Admin Frontend Development Instructions
 
+## MANDATORY: Use Project Skills Before Starting Any Task
+
+Before starting anything in this project (feature, fix, refactor, review, UI change), load and follow these two skills:
+
+1. **vercel-react-best-practices** (`.claude/skills/vercel-react-best-practices/`)
+   React performance and code-quality guidelines from Vercel Engineering.
+   Source: https://www.skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
+2. **Emil Kowalski skills**, starting with **emil-design-eng** (`.claude/skills/emil-design-eng/`)
+   UI polish, component design and animation guidelines. Also use the related skills from the same set when they fit the task (`animate`, `review-animations`, `improve-animations`, `break-ui`, `pick-ui-library`, etc.).
+   Source: https://github.com/emilkowalski/skills
+
+If a skill's guidance conflicts with the rules below (for example, its library suggestions vs. the stack defined here), the rules in this file take precedence.
+
+---
+
 ## Project Overview
 
 This project is a modern administration panel for an existing PHP backend API.
@@ -33,7 +48,7 @@ Use the following stack unless there is a strong technical reason not to:
 * React
 * TypeScript
 * Vite
-* Ant Design
+* shadcn/ui (Radix primitives) + Tailwind CSS v4
 * React Router
 * TanStack Query
 * React Hook Form
@@ -383,7 +398,7 @@ Do not invent permission names if the backend already defines them.
 
 Administration pages will frequently use tables.
 
-Use Ant Design Table unless there is a specific reason to use another table library.
+Use the shared `DataTable` / `ServerTable` components (`features/admin/components/AdminPage.tsx`), built on the shadcn `Table`. Add TanStack Table only if a page genuinely needs client-side sorting, filtering or column state.
 
 Tables should support backend capabilities where available:
 
@@ -408,7 +423,9 @@ Use:
 
 * React Hook Form
 * Zod where appropriate
-* Ant Design form controls
+* The shared field components in `components/forms/FormFields.tsx` (built on shadcn `Field`) and the helpers in `lib/forms.ts` (`useZodForm`, `optionalText`, `optionalNumber`, ...)
+
+Optional text fields must submit `null` when blank, not `''`: the API's `nullable` rules reject empty strings.
 
 Forms should:
 
@@ -485,7 +502,9 @@ If the backend API has OpenAPI/Swagger documentation, investigate whether types 
 
 # UI/UX
 
-Use Ant Design consistently.
+Use shadcn/ui consistently. Generated components live in `components/ui/`; add new ones with `npx shadcn@latest add <component>` (Node 22) rather than hand-writing them. App-level reusable pieces live in `components/common/` (`ConfirmButton`, `CopyableText`, `StatusBadge`, `SubmitButton`).
+
+Use `sonner` (`toast`) for notifications, `Sheet` (via `FormSheet`) for create/edit drawers, and `AlertDialog` (via `ConfirmButton`/`ConfirmDialog`) for destructive actions.
 
 Prefer reusable components over repeated markup.
 

@@ -17,7 +17,8 @@ async function unwrapPage<T>(request: Promise<{ data: ApiResponse<T[]> }>): Prom
 }
 
 export const list = <T extends JsonObject>(path: string, params?: JsonObject) => unwrapPage<T>(apiClient.get(path, { params }));
-export const read = <T>(path: string) => unwrap<T>(apiClient.get(path));
+/** `params` go through axios, which writes arrays as `key[]=v`. */
+export const read = <T>(path: string, params?: JsonObject) => unwrap<T>(apiClient.get(path, { params }));
 export const create = <T extends JsonObject>(path: string, body: JsonObject) => unwrap<T>(apiClient.post(path, body));
 export const update = <T extends JsonObject>(path: string, body: JsonObject) => unwrap<T>(apiClient.put(path, body));
 export const action = <T extends JsonObject>(path: string, body: JsonObject = {}) => unwrap<T>(apiClient.post(path, body));
@@ -32,9 +33,16 @@ export interface Role extends JsonObject { uuid: string; name: string; descripti
 export interface Permission extends JsonObject { slug: string; scope: string; group: string; description: string; }
 export interface ManagedUser extends JsonObject { uuid: string; email: string; name: string; status: string; roles: Array<{ uuid: string; name: string; is_system: boolean }>; brand_uuids: string[] | null; two_factor_enabled: boolean; last_login_at: string | null; version: number; }
 export interface Game extends JsonObject { uuid: string; identifier: string; title: string; category: string; genre: string; status: string; currencies: JsonObject[]; bet_levels: JsonObject[]; win_thresholds: JsonObject[]; version: number; }
+/**
+ * `external_id` is unique within a brand only; `brand_name` is null when the brand was deleted. Profile fields are what the
+ * provider stores (`gender` is 'm' | 'f'); `first_*` describe the launch that created the player. Times are ISO UTC.
+ */
+export interface Player extends JsonObject { uuid: string; operator_uuid: string; brand_uuid: string; brand_name: string | null; external_id: string; country: string | null; nickname: string | null; email: string | null; gender: string | null; city: string | null; first_currency: string | null; first_locale: string | null; first_ip: string | null; first_game: string | null; provider_instance: string; registered_at: string; created_at: string; }
 export interface AuditEntry extends JsonObject { uuid: string; occurred_at: string; action: string; entity_type: string | null; entity_id: string | null; actor: { uuid: string; name: string | null } | null; operator_uuid: string | null; }
-export interface AnalyticsSummary extends JsonObject { currencies: JsonObject[]; previous: JsonObject[]; audience: JsonObject; previous_audience: JsonObject; data_as_of: JsonObject; includes_open_hour: boolean; }
-export interface TimeseriesPoint extends JsonObject { bucket: string; currencies: JsonObject[]; }
+/** Figures of one currency; amounts are integers in the currency's minor units, percentages are decimal strings. */
+export interface CurrencyMetrics extends JsonObject { currency: string; bets_count: number; bets_amount: number; wins_count: number; wins_amount: number; ggr: number; rtp: string | null; hold_percent: string | null; rounds: number; players: number; avg_bet: number | null; arpu: number | null; }
+export interface Audience extends JsonObject { players: number; new_players: number; }
+export interface AnalyticsSummary extends JsonObject { currencies: CurrencyMetrics[]; previous: CurrencyMetrics[]; audience: Audience; previous_audience: Audience; data_as_of: JsonObject; includes_open_hour: boolean; }
 
 export const adminApi = {
   providerInstances: () => read<ProviderInstance[]>('/platform/provider-instances'),
